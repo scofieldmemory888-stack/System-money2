@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ultimate Wallet Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@200;400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #030712;
+  --card-bg: rgba(17, 24, 39, 0.7);
+  --primary: #8b5cf6;
+  --secondary: #ec4899;
+  --accent: #06b6d4;
+  --success: #10b981;
+  --danger: #ef4444;
+}
+
+* { box-sizing: border-box; font-family: 'Kanit', sans-serif; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+
+body {
+  background-color: var(--bg);
+  color: #f3f4f6;
+  margin: 0;
+  padding: 20px;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* Animated Mesh Background */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: 
+    radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.15) 0px, transparent 50%);
+  z-index: -1;
+  animation: pulseBg 10s ease infinite alternate;
+}
+
+@keyframes pulseBg {
+  from { opacity: 0.5; } to { opacity: 1; }
+}
+
+.container { max-width: 440px; margin: auto; }
+
+.card {
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 28px;
+  padding: 25px;
+  margin-bottom: 25px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  top: -50%; left: -50%; width: 200%; height: 200%;
+  background: conic-gradient(from 0deg, transparent, var(--primary), transparent 30%);
+  animation: rotateBorder 6s linear infinite;
+  opacity: 0.1;
+  z-index: -1;
+}
+
+@keyframes rotateBorder { to { transform: rotate(360deg); } }
+
+h2 { 
+  font-size: 1.2rem; 
+  margin: 0 0 15px 0; 
+  display: flex; 
+  align-items: center; 
+  gap: 10px;
+  background: linear-gradient(90deg, #fff, #9ca3af);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+input {
+  width: 100%;
+  background: rgba(255,255,255,0.05);
+  border: 2px solid rgba(255,255,255,0.05);
+  padding: 15px;
+  border-radius: 16px;
+  color: #fff;
+  font-size: 1rem;
+  margin-bottom: 12px;
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: rgba(255,255,255,0.1);
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+}
+
+button {
+  width: 100%;
+  padding: 15px;
+  border-radius: 16px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: white;
+  box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3);
+}
+
+button:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 8px 25px rgba(236, 72, 153, 0.5);
+}
+
+/* List Item Neon Style */
+.expense-item {
+  background: rgba(255,255,255,0.03);
+  margin-top: 10px;
+  padding: 12px 18px;
+  border-radius: 15px;
+  display: flex;
+  justify-content: space-between;
+  border-left: 3px solid var(--accent);
+  animation: slideIn 0.5s ease backwards;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* Progress Circle & Stats */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.stat-box {
+  background: rgba(255,255,255,0.03);
+  padding: 15px;
+  border-radius: 20px;
+  text-align: center;
+}
+
+.stat-val { font-size: 1.2rem; font-weight: 600; color: var(--accent); }
+
+/* Calendar Mini */
+.calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+.day {
+  font-size: 0.7rem;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.03);
+}
+.today {
+  background: var(--primary);
+  box-shadow: 0 0 15px var(--primary);
+}
+
+.warning-banner {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger);
+  padding: 10px;
+  border-radius: 12px;
+  text-align: center;
+  font-size: 0.9rem;
+  margin-top: 10px;
+  border: 1px solid var(--danger);
+  display: none;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="card" style="text-align: center; padding: 30px;">
+    <h3 style="margin:0; opacity: 0.7; font-weight: 200;">ยอดเงินเก็บสะสม</h3>
+    <div id="totalSaving" style="font-size: 3rem; font-weight: 600; background: linear-gradient(to right, #06b6d4, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">0</div>
+    <div style="font-size: 0.9rem; opacity: 0.5;">เป้าหมาย 18,000 บาท</div>
+    
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div style="font-size: 0.8rem; opacity: 0.6;">เหลืออีก</div>
+        <div id="remaining" class="stat-val">18,000</div>
+      </div>
+      <div class="stat-box">
+        <div style="font-size: 0.8rem; opacity: 0.6;">คาดการณ์ (วัน)</div>
+        <div id="daysLeft" class="stat-val">0</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>💸 รายจ่ายวันนี้</h2>
+    <input type="number" id="expenseInput" placeholder="0.00">
+    <button onclick="addExpense()">เพิ่มบันทึก</button>
+    <div id="warning" class="warning-banner"></div>
+    <div id="expenseList" style="margin-top: 15px; max-height: 200px; overflow-y: auto;"></div>
+  </div>
+
+  <div class="card">
+    <h2>💰 เก็บเงินเพิ่ม</h2>
+    <input type="number" id="saveInput" placeholder="จำนวนเงินออมวันนี้...">
+    <button onclick="addSaving()" style="background: linear-gradient(135deg, #10b981, #06b6d4);">บันทึกออมเงิน</button>
+  </div>
+
+  <div class="card">
+    <h2>📅 วันนี้</h2>
+    <div id="calendar" class="calendar"></div>
+  </div>
+</div>
+
+<script>
+let expenses = JSON.parse(localStorage.getItem("expenses")) || [];
+let totalSaving = parseInt(localStorage.getItem("totalSaving")) || 0;
+const goal = 18000;
+const budget = 445;
+
+window.onload = () => {
+  renderExpenses();
+  updateUI();
+  generateCalendar();
+};
+
+function addExpense() {
+  const amount = parseInt(document.getElementById("expenseInput").value);
+  if (!amount) return;
+  expenses.push({amount, time: new Date().toLocaleTimeString()});
+  localStorage.setItem("expenses", JSON.stringify(expenses));
+  document.getElementById("expenseInput").value = "";
+  renderExpenses();
+  updateUI();
+}
+
+function renderExpenses() {
+  const list = document.getElementById("expenseList");
+  list.innerHTML = "";
+  expenses.slice().reverse().forEach((item, index) => {
+    const div = document.createElement("div");
+    div.className = "expense-item";
+    div.innerHTML = `<span>${item.amount} ฿ <small style="opacity:0.4">(${item.time})</small></span> 
+                     <span style="color:var(--danger); cursor:pointer" onclick="deleteEx(${expenses.length-1-index})">✕</span>`;
+    list.appendChild(div);
+  });
+}
+
+function deleteEx(i) {
+  expenses.splice(i, 1);
+  localStorage.setItem("expenses", JSON.stringify(expenses));
+  renderExpenses();
+  updateUI();
+}
+
+function addSaving() {
+  const val = parseInt(document.getElementById("saveInput").value);
+  if (!val) return;
+  totalSaving += val;
+  localStorage.setItem("totalSaving", totalSaving);
+  document.getElementById("saveInput").value = "";
+  updateUI();
+}
+
+function updateUI() {
+  const daily = expenses.reduce((a, b) => a + b.amount, 0);
+  document.getElementById("totalSaving").innerText = totalSaving.toLocaleString();
+  const remain = Math.max(goal - totalSaving, 0);
+  document.getElementById("remaining").innerText = remain.toLocaleString();
+  
+  // Predict days
+  const days = Math.ceil(remain / (totalSaving / (Math.max(expenses.length, 1)) || 100));
+  document.getElementById("daysLeft").innerText = totalSaving > 0 ? days : "—";
+
+  const warn = document.getElementById("warning");
+  if (daily > budget) {
+    warn.style.display = "block";
+    warn.innerText = `⚠️ เกินงบ 445 บาทแล้ว! (ใช้ไป ${daily})`;
+  } else {
+    warn.style.display = "none";
+  }
+}
+
+function generateCalendar() {
+  const cal = document.getElementById("calendar");
+  const today = new Date().getDate();
+  for(let i=1; i<=31; i++) {
+    const d = document.createElement("div");
+    d.className = `day ${i===today ? 'today' : ''}`;
+    d.innerText = i;
+    cal.appendChild(d);
+  }
+}
+/* ================================
+   🔥 EXTENSION SYSTEM (ADD ONLY)
+=================================*/
+
+// โหลดข้อมูลใหม่แบบแยกวัน
+let savingHistory = JSON.parse(localStorage.getItem("savingHistory")) || [];
+
+function getTodayDate(){
+  return new Date().toLocaleDateString("th-TH");
+}
+
+/* ====== OVERRIDE ADD EXPENSE ====== */
+const oldAddExpense = addExpense;
+addExpense = function() {
+  const amount = parseInt(document.getElementById("expenseInput").value);
+  if (!amount) return;
+
+  expenses.push({
+    amount,
+    time: new Date().toLocaleTimeString(),
+    date: getTodayDate()
+  });
+
+  localStorage.setItem("expenses", JSON.stringify(expenses));
+  document.getElementById("expenseInput").value = "";
+  renderExpenses();
+  updateUI();
+  renderHistory();
+};
+
+/* ====== OVERRIDE ADD SAVING ====== */
+const oldAddSaving = addSaving;
+addSaving = function(){
+  const val = parseInt(document.getElementById("saveInput").value);
+  if (!val) return;
+
+  totalSaving += val;
+
+  savingHistory.push({
+    amount: val,
+    date: getTodayDate(),
+    time: new Date().toLocaleTimeString()
+  });
+
+  localStorage.setItem("totalSaving", totalSaving);
+  localStorage.setItem("savingHistory", JSON.stringify(savingHistory));
+
+  document.getElementById("saveInput").value = "";
+  updateUI();
+  renderHistory();
+};
+
+/* ====== DAILY TOTAL FIX ====== */
+const oldUpdateUI = updateUI;
+updateUI = function(){
+  oldUpdateUI();
+
+  const today = getTodayDate();
+  const todayTotal = expenses
+      .filter(e => e.date === today)
+      .reduce((a,b)=>a+b.amount,0);
+
+  let dailyBox = document.getElementById("dailyTotalBox");
+  if(!dailyBox){
+    dailyBox = document.createElement("div");
+    dailyBox.id = "dailyTotalBox";
+    dailyBox.style.marginTop="10px";
+    document.querySelector(".card:nth-child(2)").appendChild(dailyBox);
+  }
+
+  dailyBox.innerHTML = `
+    <div style="margin-top:10px; font-size:0.9rem; opacity:0.7">
+      📅 ${today}
+    </div>
+    <div style="font-size:1.2rem; color:#06b6d4;">
+      ใช้ไปวันนี้: ${todayTotal.toLocaleString()} ฿
+    </div>
+  `;
+};
+
+/* ====== HISTORY UI ====== */
+function renderHistory(){
+
+  let historyCard = document.getElementById("historyCard");
+  if(!historyCard){
+    historyCard = document.createElement("div");
+    historyCard.className="card";
+    historyCard.id="historyCard";
+    historyCard.innerHTML=`<h2>📜 ประวัติทั้งหมด</h2>
+    <div id="historyContent" style="max-height:250px;overflow-y:auto"></div>`;
+    document.querySelector(".container").appendChild(historyCard);
+  }
+
+  const box = document.getElementById("historyContent");
+  box.innerHTML="";
+
+  const combined = [
+    ...expenses.map((e,i)=>({...e,type:"expense",index:i})),
+    ...savingHistory.map((s,i)=>({...s,type:"saving",index:i}))
+  ].sort((a,b)=> new Date(b.date+" "+b.time) - new Date(a.date+" "+a.time));
+
+  combined.forEach(item=>{
+    const div = document.createElement("div");
+    div.className="expense-item";
+
+    div.innerHTML=`
+      <span>
+        ${item.type==="expense"?"💸":"💰"} 
+        ${item.amount} ฿ 
+        <small style="opacity:0.4">
+        (${item.date} ${item.time})
+        </small>
+      </span>
+      <span>
+        <span style="cursor:pointer;margin-right:8px;color:#06b6d4"
+          onclick="editItem('${item.type}',${item.index})">✎</span>
+        <span style="cursor:pointer;color:var(--danger)"
+          onclick="deleteItem('${item.type}',${item.index})">✕</span>
+      </span>
+    `;
+    box.appendChild(div);
+  });
+}
+
+/* ====== DELETE ====== */
+function deleteItem(type,i){
+  if(type==="expense"){
+    expenses.splice(i,1);
+    localStorage.setItem("expenses", JSON.stringify(expenses));
+  }else{
+    savingHistory.splice(i,1);
+    localStorage.setItem("savingHistory", JSON.stringify(savingHistory));
+  }
+  renderExpenses();
+  renderHistory();
+  updateUI();
+}
+
+/* ====== EDIT ====== */
+function editItem(type,i){
+  const newVal = prompt("แก้ไขจำนวนเงิน:");
+  if(!newVal) return;
+
+  if(type==="expense"){
+    expenses[i].amount = parseInt(newVal);
+    localStorage.setItem("expenses", JSON.stringify(expenses));
+  }else{
+    const diff = parseInt(newVal) - savingHistory[i].amount;
+    totalSaving += diff;
+    savingHistory[i].amount = parseInt(newVal);
+    localStorage.setItem("savingHistory", JSON.stringify(savingHistory));
+    localStorage.setItem("totalSaving", totalSaving);
+  }
+
+  renderExpenses();
+  renderHistory();
+  updateUI();
+}
+
+/* ===== INIT HISTORY ===== */
+window.addEventListener("load", renderHistory);
+/* ================================
+   📅 FILTER BY DATE SYSTEM
+=================================*/
+
+function renderHistory(){
+  let historyCard = document.getElementById("historyCard");
+  if(!historyCard){
+    historyCard = document.createElement("div");
+    historyCard.className="card";
+    historyCard.id="historyCard";
+    historyCard.innerHTML=`
+      <h2>📜 ประวัติทั้งหมด</h2>
+
+      <div style="display:flex; gap:8px; margin-bottom:10px;">
+        <input type="date" id="filterDate" style="flex:1;">
+        <select id="filterType" style="flex:1; padding:10px; border-radius:12px; background:#111; color:white;">
+          <option value="all">ทั้งหมด</option>
+          <option value="expense">รายจ่าย</option>
+          <option value="saving">การออม</option>
+        </select>
+      </div>
+
+      <div id="historyContent" style="max-height:250px;overflow-y:auto"></div>
+    `;
+    document.querySelector(".container").appendChild(historyCard);
+
+    document.getElementById("filterDate").addEventListener("change", renderHistory);
+    document.getElementById("filterType").addEventListener("change", renderHistory);
+  }
+
+  const box = document.getElementById("historyContent");
+  box.innerHTML="";
+
+  const selectedDateInput = document.getElementById("filterDate").value;
+  const selectedType = document.getElementById("filterType").value;
+
+  let selectedDate = null;
+  if(selectedDateInput){
+    const d = new Date(selectedDateInput);
+    selectedDate = d.toLocaleDateString("th-TH");
+  }
+
+  const combined = [
+    ...expenses.map((e,i)=>({...e,type:"expense",index:i})),
+    ...savingHistory.map((s,i)=>({...s,type:"saving",index:i}))
+  ];
+
+  const filtered = combined.filter(item=>{
+    const matchDate = selectedDate ? item.date === selectedDate : true;
+    const matchType = selectedType === "all" ? true : item.type === selectedType;
+    return matchDate && matchType;
+  }).sort((a,b)=> new Date(b.date+" "+b.time) - new Date(a.date+" "+a.time));
+
+  if(filtered.length === 0){
+    box.innerHTML = `<div style="opacity:0.5; text-align:center;">ไม่มีข้อมูล</div>`;
+    return;
+  }
+
+  filtered.forEach(item=>{
+    const div = document.createElement("div");
+    div.className="expense-item";
+
+    div.innerHTML=`
+      <span>
+        ${item.type==="expense"?"💸":"💰"} 
+        ${item.amount} ฿ 
+        <small style="opacity:0.4">
+        (${item.date} ${item.time})
+        </small>
+      </span>
+      <span>
+        <span style="cursor:pointer;margin-right:8px;color:#06b6d4"
+          onclick="editItem('${item.type}',${item.index})">✎</span>
+        <span style="cursor:pointer;color:var(--danger)"
+          onclick="deleteItem('${item.type}',${item.index})">✕</span>
+      </span>
+    `;
+    box.appendChild(div);
+  });
+}
+/* ================================
+   🏷 CATEGORY + DESCRIPTION SYSTEM
+=================================*/
+
+// เพิ่ม input ช่องรายละเอียด + หมวดหมู่
+window.addEventListener("load", () => {
+
+  const expenseCard = document.querySelector(".card:nth-child(2)");
+  const inputAmount = document.getElementById("expenseInput");
+
+  // สร้างช่องรายละเอียด
+  const descInput = document.createElement("input");
+  descInput.placeholder = "รายละเอียด เช่น ข้าวเย็น";
+  descInput.id = "expenseDesc";
+
+  // สร้าง dropdown หมวดหมู่
+  const select = document.createElement("select");
+  select.id = "expenseCategory";
+  select.style = "width:100%;padding:15px;border-radius:16px;background:rgba(255,255,255,0.05);color:white;margin-bottom:12px;border:none;";
+
+  select.innerHTML = `
+    <option value="อาหาร">🍜 อาหาร</option>
+    <option value="เดินทาง">🚗 เดินทาง</option>
+    <option value="ของใช้">🧴 ของใช้</option>
+    <option value="เสื้อผ้า">👕 เสื้อผ้า</option>
+    <option value="ความบันเทิง">🎮 ความบันเทิง</option>
+    <option value="อื่นๆ">📦 อื่นๆ</option>
+  `;
+
+  expenseCard.insertBefore(descInput, inputAmount.nextSibling);
+  expenseCard.insertBefore(select, descInput.nextSibling);
+});
+
+
+// override addExpense อีกครั้ง
+const oldAddExpense2 = addExpense;
+addExpense = function() {
+
+  const amount = parseInt(document.getElementById("expenseInput").value);
+  const desc = document.getElementById("expenseDesc").value || "-";
+  const category = document.getElementById("expenseCategory").value;
+
+  if (!amount) return;
+
+  expenses.push({
+    amount,
+    desc,
+    category,
+    time: new Date().toLocaleTimeString(),
+    date: new Date().toLocaleDateString("th-TH")
+  });
+
+  localStorage.setItem("expenses", JSON.stringify(expenses));
+
+  document.getElementById("expenseInput").value = "";
+  document.getElementById("expenseDesc").value = "";
+
+  renderExpenses();
+  renderHistory();
+  updateUI();
+};
+
+
+// override renderExpenses ให้แสดงหมวด
+const oldRenderExpenses2 = renderExpenses;
+renderExpenses = function(){
+  const list = document.getElementById("expenseList");
+  list.innerHTML = "";
+
+  expenses.slice().reverse().forEach((item, index) => {
+
+    const div = document.createElement("div");
+    div.className = "expense-item";
+
+    div.innerHTML = `
+      <div>
+        <div>
+          ${item.amount} ฿ 
+          <small style="opacity:0.4">
+            (${item.time})
+          </small>
+        </div>
+        <div style="font-size:0.8rem;opacity:0.6;">
+          ${item.category || "อื่นๆ"} • ${item.desc || "-"}
+        </div>
+      </div>
+      <span style="color:var(--danger); cursor:pointer"
+        onclick="deleteEx(${expenses.length-1-index})">✕</span>
+    `;
+
+    list.appendChild(div);
+  });
+};
+
+// override renderHistory ให้แสดงหมวดด้วย
+const oldRenderHistory2 = renderHistory;
+renderHistory = function(){
+
+  oldRenderHistory2();
+
+  const items = document.querySelectorAll("#historyContent .expense-item");
+
+  items.forEach((div, i)=>{
+    const item = [...expenses, ...savingHistory]
+      .sort((a,b)=> new Date(b.date+" "+b.time) - new Date(a.date+" "+a.time))[i];
+
+    if(item && item.category){
+      const extra = document.createElement("div");
+      extra.style.fontSize="0.8rem";
+      extra.style.opacity="0.6";
+      extra.innerText = `${item.category} • ${item.desc || "-"}`;
+      div.firstElementChild.appendChild(extra);
+    }
+  });
+};
+</script>
+</body>
+</html>

@@ -436,17 +436,37 @@ function deleteItem(type,i){
 }
 
 /* ====== EDIT ====== */
-function editItem(type,i){
-  const newVal = prompt("แก้ไขจำนวนเงิน:");
-  if(!newVal) return;
+function editItem(type, i){
 
-  if(type==="expense"){
-    expenses[i].amount = parseInt(newVal);
+  if(type === "expense"){
+    const current = expenses[i];
+
+    const newAmount = prompt("แก้ไขจำนวนเงิน:", current.amount);
+    if(newAmount === null) return;
+
+    const newDesc = prompt("แก้ไขรายละเอียด:", current.desc || "-");
+    if(newDesc === null) return;
+
+    const newCategory = prompt("แก้ไขหมวดหมู่:", current.category || "อื่นๆ");
+    if(newCategory === null) return;
+
+    expenses[i].amount = parseInt(newAmount);
+    expenses[i].desc = newDesc;
+    expenses[i].category = newCategory;
+
     localStorage.setItem("expenses", JSON.stringify(expenses));
-  }else{
-    const diff = parseInt(newVal) - savingHistory[i].amount;
+
+  } else {
+
+    const current = savingHistory[i];
+    const newVal = prompt("แก้ไขจำนวนเงินออม:", current.amount);
+    if(newVal === null) return;
+
+    const diff = parseInt(newVal) - current.amount;
     totalSaving += diff;
+
     savingHistory[i].amount = parseInt(newVal);
+
     localStorage.setItem("savingHistory", JSON.stringify(savingHistory));
     localStorage.setItem("totalSaving", totalSaving);
   }
